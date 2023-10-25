@@ -11,7 +11,7 @@ data class Utente(
     val type: UtenteType? = null,
     val paymentType: PaymentPlan? = null,
     val id: Int? = null,
-    val divida: Int? = null,
+    val divida: Float? = null,
 ) {
 
     enum class UtenteType {

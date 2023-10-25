@@ -66,7 +66,12 @@ fun HomeScreen(navController: NavController) {
                 })
         }, floatingActionButton = {
             LargeFloatingActionButton(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    navController.navigate(route = Screen.ParkingLayout.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
                 modifier = Modifier.size(80.dp),
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer
             ) {

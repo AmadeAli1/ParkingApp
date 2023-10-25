@@ -4,6 +4,7 @@ package com.amade.dev.parkingapp.repository
 import com.amade.dev.parkingapp.dataStore.UtenteDataStore
 import com.amade.dev.parkingapp.model.Utente
 import com.amade.dev.parkingapp.service.AuthService
+import com.amade.dev.parkingapp.utils.toMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,7 +61,7 @@ class AuthRepository @Inject constructor(
                 _user.emit(userResponse)
                 return onSuccess()
             }
-            return onFailure(response.message())
+            response.errorBody()?.toMessage()?.let { onFailure(it) }
         } catch (networkException: IOException) {
             onFailure("Check your network connection")
         } catch (e: Exception) {
@@ -86,7 +87,7 @@ class AuthRepository @Inject constructor(
                 _user.emit(userResponse)
                 return onSuccess()
             }
-            return onFailure(response.message())
+            response.errorBody()?.toMessage()?.let { onFailure(it) }
         } catch (networkException: IOException) {
             onFailure("Check your network connection")
         } catch (e: Exception) {

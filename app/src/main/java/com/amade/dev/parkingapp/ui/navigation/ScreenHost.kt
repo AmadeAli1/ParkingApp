@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.amade.dev.parkingapp.ui.screen.HomeScreen
 import com.amade.dev.parkingapp.ui.screen.LoginScreen
+import com.amade.dev.parkingapp.ui.screen.ParkingScreen
 import com.amade.dev.parkingapp.ui.screen.SignUpScreen
 import com.amade.dev.parkingapp.ui.screen.SplashScreen
 
@@ -19,22 +20,26 @@ fun EntryPoint(
         startDestination = Screen.Splash.route
     ) {
 
-        composable(route = Screen.Splash.route){
+        composable(route = Screen.Splash.route) {
             SplashScreen(navController)
         }
 
-        composable(route = Screen.Login.route){
+        composable(route = Screen.Login.route) {
             LoginScreen(navController)
         }
 
 
-        composable(route = Screen.Signup.route){
+        composable(route = Screen.Signup.route) {
             SignUpScreen(navController)
         }
 
 
-        composable(route = Screen.Home.route){
+        composable(route = Screen.Home.route) {
             HomeScreen(navController)
+        }
+
+        composable(route = Screen.ParkingLayout.route){
+            ParkingScreen(navController)
         }
 
     }
@@ -46,4 +51,6 @@ sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Signup : Screen("signup")
     object Home : Screen("home")
+
+    object ParkingLayout : Screen("parking_layout")
 }

@@ -23,7 +23,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
     private const val LOCALHOST = "http://192.168.43.128:8080/api/"
-    private const val IP = "http://26.23.254.172:8080/api/"
+    const val IP = "http://26.23.254.172:8080/api/"
     private const val VORTEX_IP = "https://userc438776303b6b5f.app.vtxhub.com/api/"
 
     @Singleton
@@ -33,10 +33,10 @@ object AppModule {
             .baseUrl(IP)
             .client(
                 OkHttpClient.Builder()
-                    .writeTimeout(Duration.ofSeconds(60))
-                    .callTimeout(Duration.ofSeconds(40))
-                    .connectTimeout(Duration.ofSeconds(40))
-                    .readTimeout(Duration.ofSeconds(40))
+                    .writeTimeout(Duration.ofSeconds(30))
+                    .callTimeout(Duration.ofSeconds(30))
+                    .connectTimeout(Duration.ofSeconds(30))
+                    .readTimeout(Duration.ofSeconds(25))
                     .build()
             )
             .addConverterFactory(GsonConverterFactory.create())
@@ -62,7 +62,9 @@ object AppModule {
         return HttpClient(CIO) {
             install(WebSockets) {
                 contentConverter =
-                    KotlinxWebsocketSerializationConverter(Json { ignoreUnknownKeys = true })
+                    KotlinxWebsocketSerializationConverter(
+                        format = Json { ignoreUnknownKeys = true }
+                    )
             }
         }
     }
