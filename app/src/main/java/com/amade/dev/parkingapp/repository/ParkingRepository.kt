@@ -1,7 +1,9 @@
 package com.amade.dev.parkingapp.repository
 
+import com.amade.dev.parkingapp.model.Mpesa
 import com.amade.dev.parkingapp.model.Parking
 import com.amade.dev.parkingapp.model.ParkingDetail
+import com.amade.dev.parkingapp.model.Payment
 import com.amade.dev.parkingapp.service.ParkingService
 import com.amade.dev.parkingapp.utils.toMessage
 import io.ktor.client.HttpClient
@@ -50,13 +52,15 @@ class ParkingRepository @Inject constructor(
                     Json.decodeFromString<Parking>(readText)
                 }
             emitAll(state)
-        }.retryWhen { cause, attempt ->
-            if (cause is ConnectException && attempt < 5) {
-                delay(5000)
-                return@retryWhen true
+        }
+            .flowOn(Dispatchers.IO)
+            .retryWhen { cause, attempt ->
+                if (cause is ConnectException && attempt < 15) {
+                    delay(5000)
+                    return@retryWhen true
+                }
+                false
             }
-            false
-        }.flowOn(Dispatchers.IO)
     }
 
 
@@ -89,7 +93,29 @@ class ParkingRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             try {
                 val response = parkingService.pay(utenteId)
-                delay(500)
+                delay(800)
+                if (response.isSuccessful) {
+                    response.body()?.let { onSuccess(it.message) }
+                } else {
+                    response.errorBody()?.toMessage()?.let { onFailure(it) }
+                }
+            } catch (io: IOException) {
+                onFailure("Check your internet connection")
+            } catch (e: Exception) {
+                e.message?.let(onFailure)
+            }
+        }
+
+    suspend fun payWithMpesa(
+        utenteId: Int,
+        phoneNumber: String,
+        onSuccess: (String) -> Unit,
+        onFailure: (String) -> Unit,
+    ) =
+        withContext(Dispatchers.IO) {
+            try {
+                val response = parkingService.payWithMpesa(Mpesa(phoneNumber, utenteId))
+                delay(1000)
                 if (response.isSuccessful) {
                     response.body()?.let { onSuccess(it.message) }
                 } else {
@@ -122,6 +148,58 @@ class ParkingRepository @Inject constructor(
                 e.message?.let(onFailure)
             }
         }
+
+
+    suspend fun findAllPayments(utenteId: Int): List<Payment> {
+        return withContext(Dispatchers.IO) {
+            try {
+                parkingService.findAllPayments(utenteId).body() ?: emptyList()
+            } catch (_: Exception) {
+                emptyList()
+            }
+        }
+    }
+
+    suspend fun getSpotDetail(
+        utenteId: Int,
+        onSuccess: (Parking) -> Unit,
+        onFailure: (String) -> Unit,
+    ): Unit = withContext(Dispatchers.IO) {
+        try {
+            val response = parkingService.detail(utenteId)
+            delay(500)
+            if (response.isSuccessful) {
+                response.body()?.let { onSuccess(it) }
+            } else {
+                response.errorBody()?.toMessage()?.let { onFailure(it) }
+            }
+        } catch (io: IOException) {
+            onFailure("Check your internet connection")
+        } catch (e: Exception) {
+            e.message?.let(onFailure)
+        }
+    }
+
+    suspend fun pagarDivida(
+        utenteId: Int,
+        phoneNumber: String,
+        onSuccess: (String) -> Unit,
+        onFailure: (String) -> Unit,
+    ): Unit = withContext(Dispatchers.IO) {
+        try {
+            val response = parkingService.paySubscription(Mpesa(phoneNumber, utenteId))
+            delay(500)
+            if (response.isSuccessful) {
+                response.body()?.let { onSuccess(it.message) }
+            } else {
+                response.errorBody()?.toMessage()?.let { onFailure(it) }
+            }
+        } catch (io: IOException) {
+            onFailure("Check your internet connection")
+        } catch (e: Exception) {
+            e.message?.let(onFailure)
+        }
+    }
 
 
     suspend fun closeSession() {

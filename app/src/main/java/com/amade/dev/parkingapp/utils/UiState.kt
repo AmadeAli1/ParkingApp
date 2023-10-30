@@ -2,6 +2,7 @@ package com.amade.dev.parkingapp.utils
 
 import com.amade.dev.parkingapp.model.Parking
 import com.amade.dev.parkingapp.model.ParkingDetail
+import com.amade.dev.parkingapp.model.Payment
 
 
 data class LoginUIState(
@@ -29,6 +30,13 @@ sealed class ParkingInfo {
     data class Failure(val message: String) : ParkingInfo()
     data class Success(val parking: Parking) : ParkingInfo()
 }
+
+
+data class ParkingHistoryState(
+    val isLoading: Boolean = true,
+    val total: Double = 0.0,
+    val data: List<Payment> = emptyList(),
+)
 
 sealed class PaymentState {
     object Hide : PaymentState()

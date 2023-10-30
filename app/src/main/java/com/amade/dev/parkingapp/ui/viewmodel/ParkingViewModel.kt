@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.amade.dev.parkingapp.model.ParkingSpot
 import com.amade.dev.parkingapp.model.Spot
+import com.amade.dev.parkingapp.model.Utente
 import com.amade.dev.parkingapp.repository.AuthRepository
 import com.amade.dev.parkingapp.repository.ParkingRepository
 import com.amade.dev.parkingapp.utils.ParkingInfo
@@ -157,6 +158,30 @@ class ParkingViewModel @Inject constructor(
         }
     }
 
+    fun payWithMpesa(phoneNumber: String) {
+        viewModelScope.launch {
+            if (utente.value?.paymentType == Utente.PaymentPlan.Monthly) {
+                _uiState.tryEmit(_uiState.value.copy(message = "Mpesa esta ativo somente para clientes que pagam Diariamente!"))
+                _paymentState.tryEmit(PaymentState.Hide)
+                return@launch
+            }
+
+            utente.value?.id?.let {
+                parkingRepository.payWithMpesa(
+                    utenteId = it,
+                    phoneNumber = phoneNumber,
+                    onSuccess = { message ->
+                        _uiState.tryEmit(_uiState.value.copy(message = message))
+                        _paymentState.tryEmit(PaymentState.Success)
+                    },
+                    onFailure = { message ->
+                        _uiState.tryEmit(_uiState.value.copy(message = message))
+                    }
+                )
+            }
+        }
+    }
+
     fun parquear() {
         viewModelScope.launch {
             utente.value?.id?.let {
@@ -175,6 +200,43 @@ class ParkingViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun detail() {
+        viewModelScope.launch {
+            utente.value?.id?.let {
+                parkingRepository.getSpotDetail(
+                    utenteId = it,
+                    onSuccess = { body ->
+                        viewModelScope.launch {
+                            _parkingInfo.tryEmit(ParkingInfo.Success(body))
+                        }
+                    },
+                    onFailure = { message ->
+                        _parkingInfo.tryEmit(ParkingInfo.Failure(message))
+                    }
+                )
+            }
+        }
+    }
+
+    fun pagarDivida(phoneNumber: String) {
+        viewModelScope.launch {
+            utente.value?.id?.let {
+                parkingRepository.pagarDivida(
+                    utenteId = it,
+                    phoneNumber = phoneNumber,
+                    onSuccess = { message ->
+                        _uiState.tryEmit(_uiState.value.copy(message = message))
+                        _paymentState.tryEmit(PaymentState.Success)
+                    },
+                    onFailure = { message ->
+                        _uiState.tryEmit(_uiState.value.copy(message = message))
+                    }
+                )
+            }
+        }
+
     }
 
 }

@@ -22,7 +22,8 @@ class UtenteDataStore @Inject constructor(
                 password = utente.password,
                 type = utente.type,
                 paymentType = utente.paymentType,
-                divida = utente.divida
+                divida = utente.divida,
+                lastSubscription = utente.lastSubscription
             )
         }
     }
